@@ -7,6 +7,7 @@ import {
   getDateString,
   rangeIsValid,
 } from '../range_ctrl';
+
 import moment from 'moment';
 
 describe('range_ctrl', () => {
