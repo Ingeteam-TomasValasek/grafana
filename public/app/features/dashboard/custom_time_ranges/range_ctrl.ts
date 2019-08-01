@@ -1,6 +1,4 @@
 import moment from 'moment';
-
-import * as aux from './aux';
 /*
   Notes:
     Modes are as follows: Shif -> Called when CustomTimeRange is choosen in the timepicker and one of timepickers navigation arrows is clicked on
@@ -31,7 +29,7 @@ export function customTimeRangePicked(mode, range, dayShift, editTimeRaw) {
 }
 
 export function customMove(direction, index, timeOption, dayShift) {
-  if (aux.rangeIsValid(timeOption[index])) {
+  if (rangeIsValid(timeOption[index])) {
     if (timeOption[index].type === 'shift') {
       const shiftMoveResult = shiftMove(direction, index, timeOption, dayShift);
       return {
@@ -46,7 +44,7 @@ export function customMove(direction, index, timeOption, dayShift) {
 }
 
 export function shiftMove(direction, index, timeOption, dayShift) {
-  if (aux.rangeIsValid(timeOption[index])) {
+  if (rangeIsValid(timeOption[index])) {
     let newDayPresent = 0;
     if (dayShift % 1 !== 0 || isNaN(dayShift) || dayShift.length === 0) {
       throw new Error('Invalid dayShift');
@@ -88,7 +86,7 @@ export function forward(index, timeOption, dayShift, newDayPresent) {
     dayShift++;
   }
   // Index handling
-  index = aux.getNextIndex(timeOption, index);
+  index = getNextIndex(timeOption, index);
   // DayShift handling
   if (timeOption[index].newDay || timeOption.length === 1) {
     dayShift++;
@@ -117,9 +115,9 @@ export function backward(index, timeOption, dayShift, newDayPresent) {
     dayShift -= 1;
   }
 
-  if (timeOption[index].newDay && !timeOption[aux.getNextIndex(timeOption, index)].newDay) {
+  if (timeOption[index].newDay && !timeOption[getNextIndex(timeOption, index)].newDay) {
     dayShift += 1;
-  } else if (timeOption[aux.getNextIndex(timeOption, index)].newDay && !timeOption[index].newDay) {
+  } else if (timeOption[getNextIndex(timeOption, index)].newDay && !timeOption[index].newDay) {
     dayShift -= 1;
   }
 
@@ -131,7 +129,7 @@ export function backward(index, timeOption, dayShift, newDayPresent) {
 
 // Sets range absoluteFrom and absoluteTo based on dayshift input
 export function shift(range, dayShift) {
-  if (aux.rangeIsValid(range)) {
+  if (rangeIsValid(range)) {
     if (dayShift % 1 !== 0 || isNaN(dayShift) || dayShift.length === 0) {
       throw new Error('Invalid dayShift');
     }
@@ -139,11 +137,11 @@ export function shift(range, dayShift) {
     let today, yesterday;
     now.setDate(now.getDate() + dayShift);
 
-    today = aux.getDateString(now);
+    today = getDateString(now);
 
     if (range.newDay) {
       now.setDate(now.getDate() - 1);
-      yesterday = aux.getDateString(now);
+      yesterday = getDateString(now);
       range.absoluteFrom = yesterday + ' ' + range.from + ':00';
       range.absoluteTo = today + ' ' + range.to + ':00';
       return range;
@@ -158,7 +156,7 @@ export function shift(range, dayShift) {
 
 // Sets range absoluteFrom and absoluteTo based on TimeRaw.from from timepicker itself
 export function shiftByDay(range, editTimeRaw) {
-  if (aux.rangeIsValid(range)) {
+  if (rangeIsValid(range)) {
     const from = moment(editTimeRaw.from).format('YYYY-MM-DD');
     const diff = moment().diff(from, 'days');
     if (range.newDay) {
@@ -221,4 +219,59 @@ export function lastDay() {
 
 export function lastWeek() {
   //console.log('week');
+}
+
+export function getNextIndex(timeOption, index) {
+  if (index === timeOption.length - 1) {
+    index = 0;
+  } else {
+    index++;
+  }
+
+  return index;
+}
+
+export function getPrewiosIndex(timeOption, index) {
+  if (index === 0) {
+    index = timeOption.length - 1;
+  } else {
+    index--;
+  }
+
+  return index;
+}
+
+export function rangeIsValid(range) {
+  // from and to validation
+  if (range === undefined || range === null) {
+    return false;
+  }
+  const re = /^([[0-1][0-9]|2[0-4]):[0-5][0-9]$/;
+  if (!re.test(range.to) || !re.test(range.from)) {
+    return false;
+  }
+  // name validation
+  if (!range.name || 0 === range.name.length) {
+    return false;
+  }
+  return true;
+}
+
+export function getDateString(date) {
+  if (!(date instanceof Date)) {
+    throw new Error('Input is not instance of Date');
+  }
+  const now = date;
+  const year = now.getFullYear();
+  let month = (now.getMonth() + 1).toString();
+  let day = now.getDate().toString();
+  if (month.toString().length === 1) {
+    month = '0' + month;
+  }
+  if (day.toString().length === 1) {
+    day = '0' + day;
+  }
+
+  const dateTimeString = year + '-' + month + '-' + day;
+  return dateTimeString;
 }
