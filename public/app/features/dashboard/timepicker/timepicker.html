@@ -83,6 +83,16 @@
   <div class="gf-timepicker-relative-section" ng-if="ctrl.customTimeOptions.length !== 0">
       <h3 class="section-heading">Custom ranges</h3>
       <ul>
+        <li bindonce ng-class="{active: option.active}">
+            <a ng-click="ctrl.lastShift(ctrl.customTimeOptions)" bo-text="">Last Shift</a>
+        </li>
+        <li bindonce ng-class="{active: option.active}">
+            <a ng-click="ctrl.lastDay(ctrl.customTimeOptions)" bo-text="">Last Day</a>
+        </li>
+        <li bindonce ng-class="{active: option.active}">
+            <a ng-click="ctrl.lastWeek(ctrl.customTimeOptions)" bo-text="">Last Week</a>
+        </li>
+        <br />
         <li bindonce ng-repeat='option in ctrl.customTimeOptions' ng-class="{active: option.active}">
           <a ng-click="ctrl.customTimeOptionPicked(option)" bo-text="option.name"></a>
         </li>

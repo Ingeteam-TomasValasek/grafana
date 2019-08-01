@@ -179,10 +179,41 @@ export class TimePickerCtrl {
 
   // dayShift a shift nejsou nejstastnejsí nazvy :/ pak jeste dayShift a this.dayShift
   // TODO Picked neni uplne korektni slovo treba seleted nebo tak pouyit
+  lastShift(aRanges) {
+    const result = customRangeCtrl.lastShift(aRanges);
+    // const time = angular.copy(this.timeSrv.timeRange());
+    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
+    this.dayShift = result.dayShift;
+    this.applyCustomRange(result.range);
+  }
+
+  lastDay(aRanges) {
+    console.log('Day');
+    customRangeCtrl.lastDay();
+    console.log('and this is what im working with', aRanges);
+    // const time = angular.copy(this.timeSrv.timeRange());
+    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
+    // this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
+    // this.applyCustomRange(range);
+  }
+
+  lastWeek(aRanges) {
+    console.log('Week');
+    customRangeCtrl.lastWeek();
+    console.log('and this is what im working with', aRanges);
+    // const time = angular.copy(this.timeSrv.timeRange());
+    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
+    // this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
+    // this.applyCustomRange(range);
+    // this.applyCustomRange(range);
+  }
+
   customTimeOptionPicked(range) {
     const time = angular.copy(this.timeSrv.timeRange());
+    //console.log('before', range);
     this.editTimeRaw.from = this.dashboard.formatDate(time.from);
     this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
+    //console.log('after', range);
     this.applyCustomRange(range);
   }
 
