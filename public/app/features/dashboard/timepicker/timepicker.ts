@@ -28,8 +28,17 @@ export class TimePickerCtrl {
   isOpen: boolean;
   isAbsolute: boolean;
   isCustom: boolean;
+  isDay: boolean;
+  isWeek: boolean;
+  isRelative: boolean;
   customRangeIndex: any;
   dayShift: any;
+  customDay: any;
+  customWeek: any;
+  relativeValue: any;
+  relativeStep: any;
+  startWeekOffset: any;
+  endWeekOffset: any;
 
   /** @ngInject */
   constructor(private $scope, private $rootScope, private timeSrv) {
@@ -48,6 +57,15 @@ export class TimePickerCtrl {
 
     // init time stuff
     this.onRefresh();
+    this.editTimeRaw = this.timeRaw;
+    this.customTimeOptions = this.dashboard.ranges;
+    this.refresh = {
+      value: this.dashboard.refresh,
+      options: _.map(this.panel.refresh_intervals, (interval: any) => {
+        return { text: interval, value: interval };
+      }),
+    };
+    this.lastShift(this.customTimeOptions);
   }
 
   onRefresh() {
@@ -75,7 +93,7 @@ export class TimePickerCtrl {
     this.tooltip = this.dashboard.formatDate(time.from) + ' <br>to<br>';
     this.tooltip += this.dashboard.formatDate(time.to);
     this.timeRaw = timeRaw;
-    this.isAbsolute = moment.isMoment(this.timeRaw.to);
+    //this.isAbsolute = moment.isMoment(this.timeRaw.to);
   }
 
   zoom(factor) {
@@ -83,35 +101,46 @@ export class TimePickerCtrl {
   }
 
   move(direction) {
-    if (!this.isCustom) {
-      const range = this.timeSrv.timeRange();
+    if (this.isRelative) {
+      this.relativeMove(direction);
+    } else if (this.isDay) {
+      this.moveDay(direction);
+    } else if (this.isWeek) {
+      this.startWeekOffset += direction;
+      this.endWeekOffset += direction;
+      const result = customRangeCtrl.week(this.customWeek, this.startWeekOffset, this.endWeekOffset);
+      this.applyCustomRange(result.week);
+    } else {
+      if (!this.isCustom) {
+        const range = this.timeSrv.timeRange();
 
-      const timespan = (range.to.valueOf() - range.from.valueOf()) / 2;
-      let to, from;
-      if (direction === -1) {
-        to = range.to.valueOf() - timespan;
-        from = range.from.valueOf() - timespan;
-      } else if (direction === 1) {
-        to = range.to.valueOf() + timespan;
-        from = range.from.valueOf() + timespan;
-        if (to > Date.now() && range.to < Date.now()) {
-          to = Date.now();
+        const timespan = (range.to.valueOf() - range.from.valueOf()) / 2;
+        let to, from;
+        if (direction === -1) {
+          to = range.to.valueOf() - timespan;
+          from = range.from.valueOf() - timespan;
+        } else if (direction === 1) {
+          to = range.to.valueOf() + timespan;
+          from = range.from.valueOf() + timespan;
+          if (to > Date.now() && range.to < Date.now()) {
+            to = Date.now();
+            from = range.from.valueOf();
+          }
+        } else {
+          to = range.to.valueOf();
           from = range.from.valueOf();
         }
+        this.timeSrv.setTime({ from: moment.utc(from), to: moment.utc(to) });
       } else {
-        to = range.to.valueOf();
-        from = range.from.valueOf();
+        const functionResult = customRangeCtrl.customMove(
+          direction,
+          this.customRangeIndex,
+          this.customTimeOptions,
+          this.dayShift
+        );
+        this.dayShift = functionResult.dayShift;
+        this.customTimeOptionMoved(this.customTimeOptions[functionResult.index], this.dayShift);
       }
-      this.timeSrv.setTime({ from: moment.utc(from), to: moment.utc(to) });
-    } else {
-      const functionResult = customRangeCtrl.customMove(
-        direction,
-        this.customRangeIndex,
-        this.customTimeOptions,
-        this.dayShift
-      );
-      this.dayShift = functionResult.dayShift;
-      this.customTimeOptionMoved(this.customTimeOptions[functionResult.index], this.dayShift);
     }
   }
 
@@ -125,6 +154,8 @@ export class TimePickerCtrl {
     this.editTimeRaw = this.timeRaw;
     this.timeOptions = rangeUtil.getRelativeTimesList(this.panel, this.rangeString);
     this.customTimeOptions = this.dashboard.ranges;
+    this.customDay = this.dashboard.day;
+    this.customWeek = this.dashboard.week;
     this.refresh = {
       value: this.dashboard.refresh,
       options: _.map(this.panel.refresh_intervals, (interval: any) => {
@@ -171,49 +202,62 @@ export class TimePickerCtrl {
     if (this.panel.nowDelay && range.to === 'now') {
       range.to = 'now-' + this.panel.nowDelay;
     }
-
+    if (timespan.display.slice(0, 4) === 'Last') {
+      this.isAbsolute = true;
+    } else {
+      this.isAbsolute = false;
+    }
     this.timeSrv.setTime(range);
     this.closeDropdown();
     this.isCustom = false;
+    this.isRelative = true;
+    this.isDay = false;
+    this.isWeek = false;
+    this.relativeValue = parseUnit(timespan.from.slice(4), this.relativeValue);
+    this.relativeStep = this.relativeValue[0] * -1;
   }
 
-  // dayShift a shift nejsou nejstastnejsí nazvy :/ pak jeste dayShift a this.dayShift
-  // TODO Picked neni uplne korektni slovo treba seleted nebo tak pouyit
   lastShift(aRanges) {
     const result = customRangeCtrl.lastShift(aRanges);
-    // const time = angular.copy(this.timeSrv.timeRange());
-    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
     this.dayShift = result.dayShift;
     this.applyCustomRange(result.range);
+
+    this.isDay = false;
+    this.isWeek = false;
+    this.isRelative = false;
   }
 
-  lastDay(aRanges) {
-    console.log('Day');
-    customRangeCtrl.lastDay();
-    console.log('and this is what im working with', aRanges);
-    // const time = angular.copy(this.timeSrv.timeRange());
-    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
-    // this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
-    // this.applyCustomRange(range);
+  lastDay(aDay) {
+    this.isDay = true;
+    this.isWeek = false;
+    this.isRelative = false;
+    const result = customRangeCtrl.lastDay(aDay);
+    this.dayShift = result.dayShift;
+    this.applyCustomRange(aDay);
   }
 
-  lastWeek(aRanges) {
-    console.log('Week');
-    customRangeCtrl.lastWeek();
-    console.log('and this is what im working with', aRanges);
-    // const time = angular.copy(this.timeSrv.timeRange());
-    // this.editTimeRaw.from = this.dashboard.formatDate(time.from);
-    // this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
-    // this.applyCustomRange(range);
-    // this.applyCustomRange(range);
+  moveDay(direction) {
+    this.dayShift += direction;
+    const result = customRangeCtrl.shift(this.customDay, this.dayShift);
+    this.applyCustomRange(result);
+  }
+  lastWeek(aWeek) {
+    this.isDay = false;
+    this.isWeek = true;
+    this.isRelative = false;
+    const result = customRangeCtrl.lastWeek(aWeek);
+    this.startWeekOffset = result.startOffset;
+    this.endWeekOffset = result.endOffset;
+    this.applyCustomRange(result.week);
   }
 
   customTimeOptionPicked(range) {
     const time = angular.copy(this.timeSrv.timeRange());
-    //console.log('before', range);
     this.editTimeRaw.from = this.dashboard.formatDate(time.from);
     this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
-    //console.log('after', range);
+    this.isDay = false;
+    this.isWeek = false;
+    this.isRelative = false;
     this.applyCustomRange(range);
   }
 
@@ -228,8 +272,63 @@ export class TimePickerCtrl {
     this.editTimeRaw.to = this.getAbsoluteMomentForTimezone(range.absoluteTo);
     this.applyCustom();
     this.customRangeString = range.name + ', ' + rangeUtil.describeTimeRange(this.editTimeRaw).substring(0, 12);
+    if (range.type === 'day') {
+      this.customRangeString = 'Day ' + range.absoluteFrom.slice(5, 10);
+    }
+    if (range.type === 'week') {
+      this.customRangeString = 'Week from ' + range.absoluteFrom.slice(5, 10);
+    }
     this.isCustom = true;
+    this.isAbsolute = true;
+
     this.customRangeIndex = this.customTimeOptions.indexOf(range);
+  }
+
+  relativeMove(direction) {
+    // Direction -1 back // 1 forward
+    const lPrevTimespan = this.timeSrv.timeRange().raw;
+    const timespan = { from: '', to: '', active: false, display: '' };
+
+    this.relativeStep += this.relativeValue[0] * direction;
+
+    if (direction === 1) {
+      timespan.from = lPrevTimespan.to;
+
+      timespan.to = 'now' + this.relativeStep + this.relativeValue[1];
+      if (this.relativeStep >= 0) {
+        timespan.to = 'now';
+        timespan.from = 'now' + -this.relativeValue[0] + this.relativeValue[1];
+        this.relativeStep = this.relativeValue[0] * -1;
+      }
+      if (timespan.from === timespan.to) {
+        this.relativeStep += this.relativeValue[0] * direction;
+        timespan.to = 'now' + this.relativeStep + this.relativeValue[1];
+      }
+    } else if (direction === -1) {
+      timespan.to = lPrevTimespan.from;
+      timespan.from = 'now' + this.relativeStep + this.relativeValue[1];
+      if (timespan.from === timespan.to) {
+        this.relativeStep += this.relativeValue[0] * direction;
+        timespan.from = 'now' + this.relativeStep + this.relativeValue[1];
+      }
+    }
+    //timespan.active = false;
+    this.setRelativeMove(timespan);
+  }
+
+  setRelativeMove(timespan) {
+    const range = { from: timespan.from, to: timespan.to };
+
+    if (this.panel.nowDelay && range.to === 'now') {
+      range.to = 'now-' + this.panel.nowDelay;
+    }
+
+    this.timeSrv.setTime(range);
+    this.isCustom = false;
+    this.isAbsolute = true;
+    this.isRelative = true;
+    this.isDay = false;
+    this.isWeek = false;
   }
 }
 
@@ -244,6 +343,17 @@ export function settingsDirective() {
       dashboard: '=',
     },
   };
+}
+
+export function parseUnit(str, out) {
+  if (!out) {
+    out = [0, ''];
+  }
+  str = String(str);
+  const num = parseFloat(str);
+  out[0] = num;
+  out[1] = str.match(/[\d.\-\+]*\s*(.*)/)[1] || '';
+  return out;
 }
 
 export function timePickerDirective() {
@@ -263,4 +373,5 @@ angular.module('grafana.directives').directive('gfTimePickerSettings', settingsD
 angular.module('grafana.directives').directive('gfTimePicker', timePickerDirective);
 
 import { inputDateDirective } from './input_date';
+//import { active } from 'd3';
 angular.module('grafana.directives').directive('inputDatetime', inputDateDirective);

@@ -34,6 +34,8 @@ export class DashboardModel {
   revision: number;
   links: any;
   ranges: any;
+  day: any;
+  week: any;
   gnetId: any;
   panels: PanelModel[];
 
@@ -82,6 +84,8 @@ export class DashboardModel {
     this.version = data.version || 0;
     this.links = data.links || [];
     this.ranges = data.ranges || [];
+    this.day = data.day || null;
+    this.week = data.week || null;
     this.gnetId = data.gnetId || null;
     this.panels = _.map(data.panels || [], panelData => new PanelModel(panelData));
 

@@ -71,6 +71,55 @@
         </tr>
       </tbody>
     </table>
+      <br />
+      <br />
+      <br />
+      <table class="filter-table filter-table--hover">
+          <tbody>
+            <tr>
+              <td  ng-click="ctrl.editDay()" class="pointer">
+                <i class="fa fa-clock-o"></i>
+                Day
+              </td>
+              <td>
+                <span ng-click="ctrl.editDay()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}">From: </strong>{{ctrl.dashboard.day.from}}
+                </span>
+                <span ng-click="ctrl.editDay()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}">To: </strong>{{ctrl.dashboard.day.to}}
+                </span>
+                <span ng-if="ctrl.dashboard.day.newDay" ng-click="ctrl.editDay()" class="pointer">
+                  <strong ng-style="{'color':'#269242'}">Starts a new day</strong>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+      <table class="filter-table filter-table--hover">
+          <tbody>
+            <tr>
+              <td  ng-click="ctrl.editWeek()" class="pointer">
+                <i class="fa fa-clock-o"></i>
+                Week
+              </td>
+              <td>
+                <span ng-click="ctrl.editWeek()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}">From: </strong>{{ctrl.dashboard.week.startDay}}
+                </span>
+                <span ng-click="ctrl.editWeek()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}"></strong>{{ctrl.dashboard.week.from}}
+                </span>
+                <span ng-click="ctrl.editWeek()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}">To: </strong>{{ctrl.dashboard.week.endDay}}
+                </span>
+                <span ng-click="ctrl.editWeek()" class="pointer">
+                  <strong ng-style="{'color':'#32d1df'}"></strong>{{ctrl.dashboard.week.to}}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
   </div>
 </div>
 
@@ -120,6 +169,71 @@
     Add
   </button>
   <button class="btn btn-success" ng-if="ctrl.mode == 'edit'" ng-click="ctrl.saveRange()">
+    Update
+  </button>
+</form>
+
+<form ng-if="ctrl.mode == 'edit-Day'" name="ctrl.form">
+  <div class="gf-form-group">
+    Day
+    </div>
+    <div class="gf-form-group">
+      <div class="gf-form">
+        <span class="gf-form-label width-5">From</span>
+        <input id="fromHourInput" type="number" min="0" max="23" step="1" class="gf-form-input width-3" name="fromHour" placeholder="08" ng-model='ctrl.dashboard.day.fromHour' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+        :&nbsp
+        <input id="fromMinInput" type="number" min="0" max="59" step="1" class="gf-form-input width-3" name="fromMin" placeholder="00" ng-model='ctrl.dashboard.day.fromMin' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+      </div>
+      <div class="gf-form">
+        <span class="gf-form-label width-5">To</span>
+        <input id="toHourInput" type="number" min="0" max="23" step="1" class="gf-form-input width-3" name="toHour" placeholder="15" ng-model='ctrl.dashboard.day.toHour' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+        :&nbsp
+        <input id="toMinInput" type="number" min="0" max="59" step="1" class="gf-form-input width-3" name="toMin" placeholder="30" ng-model='ctrl.dashboard.day.toMin' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+      </div>
+    </div>
+
+    <div class="gf-form-group">
+      <div class="gf-form">
+          <gf-form-switch class="gf-form"
+          label="Starts a new day"
+          label-class="width-12"
+          tooltip="Check when time range crosses midnight"
+          checked="ctrl.dashboard.day.newDay">
+        </gf-form-switch>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-success" ng-click="ctrl.saveDay()">
+    Update
+  </button>
+</form>
+
+<form ng-if="ctrl.mode == 'edit-Week'" name="ctrl.form">
+  <div class="gf-form-group">
+    Week
+  </div>
+    <div class="gf-form-group">
+      <div class="gf-form" >
+        <span class="gf-form-label width-5">From</span>
+        <div class="gf-form-select-wrapper width-10">
+          <select class="gf-form-input" ng-model="ctrl.dashboard.week.startDay" ng-options="a for a in ctrl.days"></select>
+        </div>
+        <input id="fromHourInput" type="number" min="0" max="23" step="1" class="gf-form-input width-3" name="fromHour" placeholder="08" ng-model='ctrl.dashboard.week.fromHour' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+        :&nbsp
+        <input id="fromMinInput" type="number" min="0" max="59" step="1" class="gf-form-input width-3" name="fromMin" placeholder="00" ng-model='ctrl.dashboard.week.fromMin' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+      </div>
+      <div class="gf-form">
+        <span class="gf-form-label width-5">To</span>
+        <div class="gf-form-select-wrapper width-10">
+          <select class="gf-form-input" ng-model="ctrl.dashboard.week.endDay" ng-options="a for a in ctrl.days"></select>
+        </div>
+        <input id="toHourInput" type="number" min="0" max="23" step="1" class="gf-form-input width-3" name="toHour" placeholder="15" ng-model='ctrl.dashboard.week.toHour' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+        :&nbsp
+        <input id="toMinInput" type="number" min="0" max="59" step="1" class="gf-form-input width-3" name="toMin" placeholder="30" ng-model='ctrl.dashboard.week.toMin' required onblur="if(this.value.toString().length === 1)this.value='0'+this.value;">
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-success" ng-click="ctrl.saveWeek()">
     Update
   </button>
 </form>

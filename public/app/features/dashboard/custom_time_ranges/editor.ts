@@ -26,12 +26,16 @@ export class CustomTimeRangeEditorCtrl {
   mode: any;
   range: any;
   form: any;
+  days: any;
 
   /** @ngInject */
   constructor($scope, $rootScope) {
     this.iconMap = iconMap;
     this.dashboard.ranges = this.dashboard.ranges || [];
+    this.dashboard.day = this.dashboard.day;
+    this.dashboard.week = this.dashboard.week;
     this.mode = 'list';
+    this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     $scope.$on('$destroy', () => {
       $rootScope.appEvent('custom-ranges-updated');
@@ -90,6 +94,25 @@ export class CustomTimeRangeEditorCtrl {
   deleteRange(index) {
     this.dashboard.ranges.splice(index, 1);
     this.dashboard.updateSubmenuVisibility();
+  }
+
+  editDay() {
+    this.mode = 'edit-Day';
+    //this.dashboard.day = 'DAY!!!!'
+  }
+  saveDay() {
+    this.dashboard.day.from = timeToString(this.dashboard.day.fromHour, this.dashboard.day.fromMin);
+    this.dashboard.day.to = timeToString(this.dashboard.day.toHour, this.dashboard.day.toMin);
+    this.backToList();
+  }
+  editWeek() {
+    this.mode = 'edit-Week';
+    //this.dashboard.week = 'DAY!!!!'
+  }
+  saveWeek() {
+    this.dashboard.week.from = timeToString(this.dashboard.week.fromHour, this.dashboard.week.fromMin);
+    this.dashboard.week.to = timeToString(this.dashboard.week.toHour, this.dashboard.week.toMin);
+    this.backToList();
   }
 }
 

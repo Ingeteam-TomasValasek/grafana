@@ -6,7 +6,7 @@ import moment from 'moment';
                           option in timepicker
 */
 export function customTimeRangePicked(mode, range, dayShift, editTimeRaw) {
-  if (range.type === 'shift') {
+  if (range.type === 'shift' || range.type === 'day') {
     switch (mode) {
       case 'shift':
         const shiftResult = shift(range, dayShift);
@@ -20,7 +20,6 @@ export function customTimeRangePicked(mode, range, dayShift, editTimeRaw) {
         };
 
       default:
-        console.log(mode, ' mode not supported');
         throw new Error('Unknown mode');
     }
   } else {
@@ -176,9 +175,8 @@ export function shiftByDay(range, editTimeRaw) {
 
 export function lastShift(aRanges) {
   const temp = getToTimes(aRanges);
-  // always retuns first defined shift of previos day, for now
   const result = customTimeRangePicked('shift', aRanges[temp.index], temp.dayShift, null);
-  //console.log('result', result)
+
   return {
     range: result,
     dayShift: temp.dayShift,
@@ -187,38 +185,100 @@ export function lastShift(aRanges) {
 export function getToTimes(aRanges) {
   const lNow = moment();
   const lTimeNow = lNow.hour() * 60 + lNow.minute();
-  //let lResultIndex;
-  //console.log('day',lTimeNow,lNow);
+  const lSmallerTimes = [];
+  let lResultIndex;
+  let lFound = false;
+
   const lTimes = [];
   let dayShift = 0;
+
   for (let i = 0; i < aRanges.length; i++) {
-    if (lTimeNow > aRanges[i].toHour * 60 + aRanges[i].toMin) {
-      //lResultIndex = i;
-    }
     lTimes[i] = aRanges[i].toHour * 60 + aRanges[i].toMin;
+
+    if (lTimeNow > lTimes[i]) {
+      lSmallerTimes.push(aRanges[i].toHour * 60 + aRanges[i].toMin);
+      lFound = true;
+    }
   }
-  //console.log('lTimeNow',lTimeNow,'lTimes',lTimes);
-  let closest = lTimes.reduce((prev, curr) => {
-    return lTimeNow - curr < lTimeNow - prev && lTimeNow - curr > 0 ? curr : prev;
-  });
-  //console.log('closest',closest);
-  if (closest > lTimeNow) {
-    closest = Math.max(...lTimes);
+  if (lFound === false) {
+    lResultIndex = lTimes.indexOf(Math.max(...lTimes));
     dayShift = -1;
+  } else {
+    lResultIndex = lTimes.indexOf(Math.max(...lSmallerTimes));
   }
-  //console.log('closest',closest);
+
   return {
-    index: lTimes.indexOf(closest),
+    index: lResultIndex,
     dayShift: dayShift,
   };
 }
 
-export function lastDay() {
-  //console.log('day');
+export function lastDay(aDay) {
+  const lNow = moment();
+  const lTimeNow = lNow.hour() * 60 + lNow.minute();
+  const lDayToTime = aDay.toHour * 60 + aDay.toMin;
+  let dayShift = 0;
+
+  if (lDayToTime > lTimeNow) {
+    dayShift = -1;
+  }
+
+  // if (aDay.newDay) {
+  //   dayShift = -1;
+  // }
+  aDay.type = 'day';
+  const result = customTimeRangePicked('shift', aDay, dayShift, null);
+
+  return {
+    range: result,
+    dayShift: dayShift,
+  };
 }
 
-export function lastWeek() {
-  //console.log('week');
+export function lastWeek(aWeek) {
+  aWeek.type = 'week';
+  let lEndOffset = 0;
+  let lStarOffset = 0;
+
+  if (moment().isoWeekday() === getDayNumber(aWeek.endDay)) {
+    const lNow = moment();
+    const lTimeNow = lNow.hour() * 60 + lNow.minute();
+
+    if (lTimeNow < aWeek.toHour * 60 + aWeek.toMin) {
+      lEndOffset--;
+    }
+  } else if (moment().isoWeekday() > getDayNumber(aWeek.endDay)) {
+  } else {
+    lEndOffset--;
+  }
+
+  // check if Work ween is crossing from sunday into the other one
+  if (getDayNumber(aWeek.startDay) < getDayNumber(aWeek.endDay)) {
+    lStarOffset = lEndOffset;
+  } else {
+    lStarOffset = lEndOffset - 1;
+  }
+  const result = week(aWeek, lStarOffset, lEndOffset);
+  return result;
+}
+
+export function week(aWeek, aStarOffset, aEndOffset) {
+  const lFromDate = moment()
+    .isoWeekday(aWeek.startDay)
+    .add(aStarOffset, 'week')
+    .format('YYYY-MM-DD');
+  const lToDate = moment()
+    .isoWeekday(aWeek.endDay)
+    .add(aEndOffset, 'week')
+    .format('YYYY-MM-DD');
+
+  aWeek.absoluteFrom = lFromDate + ' ' + aWeek.from + ':00';
+  aWeek.absoluteTo = lToDate + ' ' + aWeek.to + ':00';
+  return {
+    week: aWeek,
+    startOffset: aStarOffset,
+    endOffset: aEndOffset,
+  };
 }
 
 export function getNextIndex(timeOption, index) {
@@ -251,8 +311,10 @@ export function rangeIsValid(range) {
     return false;
   }
   // name validation
-  if (!range.name || 0 === range.name.length) {
-    return false;
+  if (range.type === 'shift') {
+    if (!range.name || 0 === range.name.length) {
+      return false;
+    }
   }
   return true;
 }
@@ -274,4 +336,25 @@ export function getDateString(date) {
 
   const dateTimeString = year + '-' + month + '-' + day;
   return dateTimeString;
+}
+
+export function getDayNumber(aDay) {
+  switch (aDay) {
+    case 'Monday':
+      return 1;
+    case 'Tuesday':
+      return 2;
+    case 'Wednesday':
+      return 3;
+    case 'Thursday':
+      return 4;
+    case 'Friday':
+      return 5;
+    case 'Saturday':
+      return 6;
+    case 'Sunday':
+      return 7;
+    default:
+      throw new Error('Invalid Day');
+  }
 }
