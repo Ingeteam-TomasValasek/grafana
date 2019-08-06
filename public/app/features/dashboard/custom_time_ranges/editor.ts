@@ -6,15 +6,15 @@ export let iconMap = {
   'time range': 'fa-clock-o',
 };
 
-export function timeToString(hour, minute) {
-  if (hour % 1 === 0 && minute % 1 === 0 && hour < 24 && hour >= 0 && minute < 60 && minute >= 0) {
-    if (hour.toString().length === 1) {
-      hour = '0' + hour;
+export function timeToString(aHour, aMinute) {
+  if (aHour % 1 === 0 && aMinute % 1 === 0 && aHour < 24 && aHour >= 0 && aMinute < 60 && aMinute >= 0) {
+    if (aHour.toString().length === 1) {
+      aHour = '0' + aHour;
     }
-    if (minute.toString().length === 1) {
-      minute = '0' + minute;
+    if (aMinute.toString().length === 1) {
+      aMinute = '0' + aMinute;
     }
-    const TimeString = hour + ':' + minute;
+    const TimeString = aHour + ':' + aMinute;
     return TimeString;
   }
   throw new Error('Invalid input');
@@ -74,8 +74,8 @@ export class CustomTimeRangeEditorCtrl {
     }
   }
 
-  editRange(range) {
-    this.range = range;
+  editRange(aRange) {
+    this.range = aRange;
     this.mode = 'edit';
   }
 
@@ -87,12 +87,12 @@ export class CustomTimeRangeEditorCtrl {
     }
   }
 
-  moveRange(index, dir) {
-    _.move(this.dashboard.ranges, index, index + dir);
+  moveRange(aIndex, aDir) {
+    _.move(this.dashboard.ranges, aIndex, aIndex + aDir);
   }
 
-  deleteRange(index) {
-    this.dashboard.ranges.splice(index, 1);
+  deleteRange(aIndex) {
+    this.dashboard.ranges.splice(aIndex, 1);
     this.dashboard.updateSubmenuVisibility();
   }
 

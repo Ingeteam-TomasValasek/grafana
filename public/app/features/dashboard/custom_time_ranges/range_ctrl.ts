@@ -5,17 +5,17 @@ import moment from 'moment';
                           ShifByDay -> Called from timepicker it self when Custom Time Range is clicked on, Date is set based on "From"
                           option in timepicker
 */
-export function customTimeRangePicked(mode, range, dayShift, editTimeRaw) {
-  if (range.type === 'shift' || range.type === 'day') {
-    switch (mode) {
+export function customTimeRangePicked(aMode, aRange, aDayShift, aEditTimeRaw) {
+  if (aRange.type === 'shift' || aRange.type === 'day') {
+    switch (aMode) {
       case 'shift':
-        const shiftResult = shift(range, dayShift);
+        const shiftResult = shift(aRange, aDayShift);
         return shiftResult;
 
       case 'shiftByDay':
-        const shiftByDayResult = shiftByDay(range, editTimeRaw);
+        const shiftByDayResult = shiftByDay(aRange, aEditTimeRaw);
         return {
-          range: range,
+          range: aRange,
           dayShift: shiftByDayResult.dayShift,
         };
 
@@ -27,10 +27,10 @@ export function customTimeRangePicked(mode, range, dayShift, editTimeRaw) {
   }
 }
 
-export function customMove(direction, index, timeOption, dayShift) {
-  if (rangeIsValid(timeOption[index])) {
-    if (timeOption[index].type === 'shift') {
-      const shiftMoveResult = shiftMove(direction, index, timeOption, dayShift);
+export function customMove(aDirection, aIndex, aTimeOption, aDayShift) {
+  if (rangeIsValid(aTimeOption[aIndex])) {
+    if (aTimeOption[aIndex].type === 'shift') {
+      const shiftMoveResult = shiftMove(aDirection, aIndex, aTimeOption, aDayShift);
       return {
         index: shiftMoveResult.index,
         dayShift: shiftMoveResult.dayShift,
@@ -42,28 +42,28 @@ export function customMove(direction, index, timeOption, dayShift) {
   throw new Error('Invalid range');
 }
 
-export function shiftMove(direction, index, timeOption, dayShift) {
-  if (rangeIsValid(timeOption[index])) {
+export function shiftMove(aDirection, aIndex, aTimeOption, aDayShift) {
+  if (rangeIsValid(aTimeOption[aIndex])) {
     let newDayPresent = 0;
-    if (dayShift % 1 !== 0 || isNaN(dayShift) || dayShift.length === 0) {
+    if (aDayShift % 1 !== 0 || isNaN(aDayShift) || aDayShift.length === 0) {
       throw new Error('Invalid dayShift');
     }
-    if (direction !== -1 && direction !== 0 && direction !== 1) {
+    if (aDirection !== -1 && aDirection !== 0 && aDirection !== 1) {
       throw new Error('Invalid direction');
     }
 
-    for (let i = 0; i < timeOption.length; i++) {
-      newDayPresent = newDayPresent | timeOption[i].newDay;
+    for (let i = 0; i < aTimeOption.length; i++) {
+      newDayPresent = newDayPresent | aTimeOption[i].newDay;
     }
 
-    if (direction === -1) {
-      const result = backward(index, timeOption, dayShift, newDayPresent);
+    if (aDirection === -1) {
+      const result = backward(aIndex, aTimeOption, aDayShift, newDayPresent);
       return {
         index: result.index,
         dayShift: result.dayShift,
       };
-    } else if (direction === 1) {
-      const result = forward(index, timeOption, dayShift, newDayPresent);
+    } else if (aDirection === 1) {
+      const result = forward(aIndex, aTimeOption, aDayShift, newDayPresent);
       return {
         index: result.index,
         dayShift: result.dayShift,
@@ -73,100 +73,100 @@ export function shiftMove(direction, index, timeOption, dayShift) {
   throw new Error('Invalid range');
 }
 
-export function forward(index, timeOption, dayShift, newDayPresent) {
-  if (timeOption.length === 1) {
+export function forward(aIndex, aTimeOption, aDayShift, aNewDayPresent) {
+  if (aTimeOption.length === 1) {
     return {
-      index: index,
-      dayShift: dayShift + 1,
+      index: aIndex,
+      dayShift: aDayShift + 1,
     };
   }
 
-  if (!newDayPresent && index === timeOption.length - 1) {
-    dayShift++;
+  if (!aNewDayPresent && aIndex === aTimeOption.length - 1) {
+    aDayShift++;
   }
   // Index handling
-  index = getNextIndex(timeOption, index);
+  aIndex = getNextIndex(aTimeOption, aIndex);
   // DayShift handling
-  if (timeOption[index].newDay || timeOption.length === 1) {
-    dayShift++;
+  if (aTimeOption[aIndex].newDay || aTimeOption.length === 1) {
+    aDayShift++;
   }
 
   return {
-    index: index,
-    dayShift: dayShift,
+    index: aIndex,
+    dayShift: aDayShift,
   };
 }
 
-export function backward(index, timeOption, dayShift, newDayPresent) {
-  if (!newDayPresent && index === 0) {
-    dayShift -= 1;
+export function backward(aIndex, aTimeOption, aDayShift, aNewDayPresent) {
+  if (!aNewDayPresent && aIndex === 0) {
+    aDayShift -= 1;
   }
 
   // Index handling
-  if (index === 0) {
-    index = timeOption.length - 1;
+  if (aIndex === 0) {
+    aIndex = aTimeOption.length - 1;
   } else {
-    index--;
+    aIndex--;
   }
   // DayShift handling
 
-  if (timeOption[index].newDay) {
-    dayShift -= 1;
+  if (aTimeOption[aIndex].newDay) {
+    aDayShift -= 1;
   }
 
-  if (timeOption[index].newDay && !timeOption[getNextIndex(timeOption, index)].newDay) {
-    dayShift += 1;
-  } else if (timeOption[getNextIndex(timeOption, index)].newDay && !timeOption[index].newDay) {
-    dayShift -= 1;
+  if (aTimeOption[aIndex].newDay && !aTimeOption[getNextIndex(aTimeOption, aIndex)].newDay) {
+    aDayShift += 1;
+  } else if (aTimeOption[getNextIndex(aTimeOption, aIndex)].newDay && !aTimeOption[aIndex].newDay) {
+    aDayShift -= 1;
   }
 
   return {
-    index: index,
-    dayShift: dayShift,
+    index: aIndex,
+    dayShift: aDayShift,
   };
 }
 
 // Sets range absoluteFrom and absoluteTo based on dayshift input
-export function shift(range, dayShift) {
-  if (rangeIsValid(range)) {
-    if (dayShift % 1 !== 0 || isNaN(dayShift) || dayShift.length === 0) {
+export function shift(aRange, aDayShift) {
+  if (rangeIsValid(aRange)) {
+    if (aDayShift % 1 !== 0 || isNaN(aDayShift) || aDayShift.length === 0) {
       throw new Error('Invalid dayShift');
     }
     const now = new Date();
     let today, yesterday;
-    now.setDate(now.getDate() + dayShift);
+    now.setDate(now.getDate() + aDayShift);
 
     today = getDateString(now);
 
-    if (range.newDay) {
+    if (aRange.newDay) {
       now.setDate(now.getDate() - 1);
       yesterday = getDateString(now);
-      range.absoluteFrom = yesterday + ' ' + range.from + ':00';
-      range.absoluteTo = today + ' ' + range.to + ':00';
-      return range;
+      aRange.absoluteFrom = yesterday + ' ' + aRange.from + ':00';
+      aRange.absoluteTo = today + ' ' + aRange.to + ':00';
+      return aRange;
     } else {
-      range.absoluteFrom = today + ' ' + range.from + ':00';
-      range.absoluteTo = today + ' ' + range.to + ':00';
-      return range;
+      aRange.absoluteFrom = today + ' ' + aRange.from + ':00';
+      aRange.absoluteTo = today + ' ' + aRange.to + ':00';
+      return aRange;
     }
   }
   throw new Error('Invalid range');
 }
 
 // Sets range absoluteFrom and absoluteTo based on TimeRaw.from from timepicker itself
-export function shiftByDay(range, editTimeRaw) {
-  if (rangeIsValid(range)) {
-    const from = moment(editTimeRaw.from).format('YYYY-MM-DD');
+export function shiftByDay(aRange, aEditTimeRaw) {
+  if (rangeIsValid(aRange)) {
+    const from = moment(aEditTimeRaw.from).format('YYYY-MM-DD');
     const diff = moment().diff(from, 'days');
-    if (range.newDay) {
-      editTimeRaw.from = moment(editTimeRaw.from, 'YYYY-MM-DD').add(1, 'days');
+    if (aRange.newDay) {
+      aEditTimeRaw.from = moment(aEditTimeRaw.from, 'YYYY-MM-DD').add(1, 'days');
     }
-    const to = moment(editTimeRaw.from).format('YYYY-MM-DD');
+    const to = moment(aEditTimeRaw.from).format('YYYY-MM-DD');
 
-    range.absoluteFrom = from + ' ' + range.from + ':00';
-    range.absoluteTo = to + ' ' + range.to + ':00';
+    aRange.absoluteFrom = from + ' ' + aRange.from + ':00';
+    aRange.absoluteTo = to + ' ' + aRange.to + ':00';
     return {
-      range: range,
+      range: aRange,
       dayShift: -diff,
     };
   }
@@ -281,49 +281,49 @@ export function week(aWeek, aStarOffset, aEndOffset) {
   };
 }
 
-export function getNextIndex(timeOption, index) {
-  if (index === timeOption.length - 1) {
-    index = 0;
+export function getNextIndex(aTimeOption, aIndex) {
+  if (aIndex === aTimeOption.length - 1) {
+    aIndex = 0;
   } else {
-    index++;
+    aIndex++;
   }
 
-  return index;
+  return aIndex;
 }
 
-export function getPrewiosIndex(timeOption, index) {
-  if (index === 0) {
-    index = timeOption.length - 1;
+export function getPrewiosIndex(aTimeOption, aIndex) {
+  if (aIndex === 0) {
+    aIndex = aTimeOption.length - 1;
   } else {
-    index--;
+    aIndex--;
   }
 
-  return index;
+  return aIndex;
 }
 
-export function rangeIsValid(range) {
+export function rangeIsValid(aRange) {
   // from and to validation
-  if (range === undefined || range === null) {
+  if (aRange === undefined || aRange === null) {
     return false;
   }
   const re = /^([[0-1][0-9]|2[0-4]):[0-5][0-9]$/;
-  if (!re.test(range.to) || !re.test(range.from)) {
+  if (!re.test(aRange.to) || !re.test(aRange.from)) {
     return false;
   }
   // name validation
-  if (range.type === 'shift') {
-    if (!range.name || 0 === range.name.length) {
+  if (aRange.type === 'shift') {
+    if (!aRange.name || 0 === aRange.name.length) {
       return false;
     }
   }
   return true;
 }
 
-export function getDateString(date) {
-  if (!(date instanceof Date)) {
+export function getDateString(aDate) {
+  if (!(aDate instanceof Date)) {
     throw new Error('Input is not instance of Date');
   }
-  const now = date;
+  const now = aDate;
   const year = now.getFullYear();
   let month = (now.getMonth() + 1).toString();
   let day = now.getDate().toString();

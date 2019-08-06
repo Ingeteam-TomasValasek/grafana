@@ -56,6 +56,8 @@ export class TimePickerCtrl {
     this.firstDayOfWeek = moment.localeData().firstDayOfWeek();
 
     // init time stuff
+
+    // All this bellow is needed to be able to call lastShift function
     this.onRefresh();
     this.editTimeRaw = this.timeRaw;
     this.customTimeOptions = this.dashboard.ranges;
@@ -65,6 +67,7 @@ export class TimePickerCtrl {
         return { text: interval, value: interval };
       }),
     };
+    // call last shift on reload
     this.lastShift(this.customTimeOptions);
   }
 
@@ -93,19 +96,21 @@ export class TimePickerCtrl {
     this.tooltip = this.dashboard.formatDate(time.from) + ' <br>to<br>';
     this.tooltip += this.dashboard.formatDate(time.to);
     this.timeRaw = timeRaw;
+    // Commented out for Relative moves to work
     //this.isAbsolute = moment.isMoment(this.timeRaw.to);
   }
 
   zoom(factor) {
     this.$rootScope.appEvent('zoom-out', 2);
   }
-
+  // Move function is modified for Custom events it checks for
   move(direction) {
     if (this.isRelative) {
       this.relativeMove(direction);
     } else if (this.isDay) {
       this.moveDay(direction);
     } else if (this.isWeek) {
+      // Moving the week is simple therefor its done here not in separate function
       this.startWeekOffset += direction;
       this.endWeekOffset += direction;
       const result = customRangeCtrl.week(this.customWeek, this.startWeekOffset, this.endWeekOffset);
@@ -149,7 +154,7 @@ export class TimePickerCtrl {
       this.closeDropdown();
       return;
     }
-
+    // when dropdown is opened timeOptions are reloaded
     this.onRefresh();
     this.editTimeRaw = this.timeRaw;
     this.timeOptions = rangeUtil.getRelativeTimesList(this.panel, this.rangeString);
@@ -202,26 +207,29 @@ export class TimePickerCtrl {
     if (this.panel.nowDelay && range.to === 'now') {
       range.to = 'now-' + this.panel.nowDelay;
     }
+    // If relative option starts with Last enables navigation arrows
     if (timespan.display.slice(0, 4) === 'Last') {
       this.isAbsolute = true;
+
+      this.relativeValue = parseUnit(timespan.from.slice(4), this.relativeValue);
+      this.relativeStep = this.relativeValue[0] * -1;
     } else {
       this.isAbsolute = false;
     }
     this.timeSrv.setTime(range);
     this.closeDropdown();
+    // Help properties
     this.isCustom = false;
     this.isRelative = true;
     this.isDay = false;
     this.isWeek = false;
-    this.relativeValue = parseUnit(timespan.from.slice(4), this.relativeValue);
-    this.relativeStep = this.relativeValue[0] * -1;
   }
 
   lastShift(aRanges) {
     const result = customRangeCtrl.lastShift(aRanges);
     this.dayShift = result.dayShift;
     this.applyCustomRange(result.range);
-
+    // Help properties
     this.isDay = false;
     this.isWeek = false;
     this.isRelative = false;
@@ -236,8 +244,8 @@ export class TimePickerCtrl {
     this.applyCustomRange(aDay);
   }
 
-  moveDay(direction) {
-    this.dayShift += direction;
+  moveDay(aDirection) {
+    this.dayShift += aDirection;
     const result = customRangeCtrl.shift(this.customDay, this.dayShift);
     this.applyCustomRange(result);
   }
@@ -251,47 +259,50 @@ export class TimePickerCtrl {
     this.applyCustomRange(result.week);
   }
 
-  customTimeOptionPicked(range) {
+  customTimeOptionPicked(aRange) {
     const time = angular.copy(this.timeSrv.timeRange());
     this.editTimeRaw.from = this.dashboard.formatDate(time.from);
-    this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', range, 0, this.editTimeRaw).dayShift;
+    this.dayShift = customRangeCtrl.customTimeRangePicked('shiftByDay', aRange, 0, this.editTimeRaw).dayShift;
+    // Help properties
     this.isDay = false;
     this.isWeek = false;
     this.isRelative = false;
-    this.applyCustomRange(range);
+    this.applyCustomRange(aRange);
   }
 
-  customTimeOptionMoved(range, dayShift) {
-    this.dayShift = dayShift;
-    customRangeCtrl.customTimeRangePicked('shift', range, dayShift, this.editTimeRaw);
-    this.applyCustomRange(range);
+  customTimeOptionMoved(aRange, aDayShift) {
+    this.dayShift = aDayShift;
+    customRangeCtrl.customTimeRangePicked('shift', aRange, aDayShift, this.editTimeRaw);
+    this.applyCustomRange(aRange);
   }
 
-  applyCustomRange(range) {
-    this.editTimeRaw.from = this.getAbsoluteMomentForTimezone(range.absoluteFrom);
-    this.editTimeRaw.to = this.getAbsoluteMomentForTimezone(range.absoluteTo);
+  applyCustomRange(aRange) {
+    this.editTimeRaw.from = this.getAbsoluteMomentForTimezone(aRange.absoluteFrom);
+    this.editTimeRaw.to = this.getAbsoluteMomentForTimezone(aRange.absoluteTo);
     this.applyCustom();
-    this.customRangeString = range.name + ', ' + rangeUtil.describeTimeRange(this.editTimeRaw).substring(0, 12);
-    if (range.type === 'day') {
-      this.customRangeString = 'Day ' + range.absoluteFrom.slice(5, 10);
+    // Setting up the name of Range
+    this.customRangeString = aRange.name + ', ' + rangeUtil.describeTimeRange(this.editTimeRaw).substring(0, 12);
+    if (aRange.type === 'day') {
+      this.customRangeString = 'Day ' + aRange.absoluteFrom.slice(5, 10);
     }
-    if (range.type === 'week') {
-      this.customRangeString = 'Week from ' + range.absoluteFrom.slice(5, 10);
+    if (aRange.type === 'week') {
+      this.customRangeString = 'Week from ' + aRange.absoluteFrom.slice(5, 10);
     }
+    // Help properties
     this.isCustom = true;
     this.isAbsolute = true;
 
-    this.customRangeIndex = this.customTimeOptions.indexOf(range);
+    this.customRangeIndex = this.customTimeOptions.indexOf(aRange);
   }
 
-  relativeMove(direction) {
+  relativeMove(aDirection) {
     // Direction -1 back // 1 forward
     const lPrevTimespan = this.timeSrv.timeRange().raw;
     const timespan = { from: '', to: '', active: false, display: '' };
 
-    this.relativeStep += this.relativeValue[0] * direction;
+    this.relativeStep += this.relativeValue[0] * aDirection;
 
-    if (direction === 1) {
+    if (aDirection === 1) {
       timespan.from = lPrevTimespan.to;
 
       timespan.to = 'now' + this.relativeStep + this.relativeValue[1];
@@ -300,15 +311,17 @@ export class TimePickerCtrl {
         timespan.from = 'now' + -this.relativeValue[0] + this.relativeValue[1];
         this.relativeStep = this.relativeValue[0] * -1;
       }
+      // After change of direction the from and to values are identical becouse of that there is a check
       if (timespan.from === timespan.to) {
-        this.relativeStep += this.relativeValue[0] * direction;
+        this.relativeStep += this.relativeValue[0] * aDirection;
         timespan.to = 'now' + this.relativeStep + this.relativeValue[1];
       }
-    } else if (direction === -1) {
+    } else if (aDirection === -1) {
       timespan.to = lPrevTimespan.from;
       timespan.from = 'now' + this.relativeStep + this.relativeValue[1];
+      // After change of direction the from and to values are identical becouse of that there is a check
       if (timespan.from === timespan.to) {
-        this.relativeStep += this.relativeValue[0] * direction;
+        this.relativeStep += this.relativeValue[0] * aDirection;
         timespan.from = 'now' + this.relativeStep + this.relativeValue[1];
       }
     }
@@ -316,14 +329,15 @@ export class TimePickerCtrl {
     this.setRelativeMove(timespan);
   }
 
-  setRelativeMove(timespan) {
-    const range = { from: timespan.from, to: timespan.to };
+  setRelativeMove(aTimespan) {
+    const range = { from: aTimespan.from, to: aTimespan.to };
 
     if (this.panel.nowDelay && range.to === 'now') {
       range.to = 'now-' + this.panel.nowDelay;
     }
 
     this.timeSrv.setTime(range);
+    // Help properties
     this.isCustom = false;
     this.isAbsolute = true;
     this.isRelative = true;
@@ -344,7 +358,7 @@ export function settingsDirective() {
     },
   };
 }
-
+// Help Function to get Numerical Values and time units from Relative Time Values (20h -> [20][h])
 export function parseUnit(str, out) {
   if (!out) {
     out = [0, ''];
