@@ -59,16 +59,18 @@ export class TimePickerCtrl {
 
     // All this bellow is needed to be able to call lastShift function
     this.onRefresh();
-    this.editTimeRaw = this.timeRaw;
-    this.customTimeOptions = this.dashboard.ranges;
-    this.refresh = {
-      value: this.dashboard.refresh,
-      options: _.map(this.panel.refresh_intervals, (interval: any) => {
-        return { text: interval, value: interval };
-      }),
-    };
-    // call last shift on reload
-    this.lastShift(this.customTimeOptions);
+    if (this.dashboard.ranges.length > 0) {
+      this.editTimeRaw = this.timeRaw;
+      this.customTimeOptions = this.dashboard.ranges;
+      this.refresh = {
+        value: this.dashboard.refresh,
+        options: _.map(this.panel.refresh_intervals, (interval: any) => {
+          return { text: interval, value: interval };
+        }),
+      };
+      // call last shift on reload
+      this.lastShift(this.customTimeOptions);
+    }
   }
 
   onRefresh() {
@@ -96,6 +98,14 @@ export class TimePickerCtrl {
     this.tooltip = this.dashboard.formatDate(time.from) + ' <br>to<br>';
     this.tooltip += this.dashboard.formatDate(time.to);
     this.timeRaw = timeRaw;
+
+    if (this.rangeString.slice(0, 4) === 'Last') {
+      this.isAbsolute = true;
+      this.isRelative = true;
+
+      this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
+      this.relativeStep = this.relativeValue[0] * -1;
+    }
     // Commented out for Relative moves to work
     //this.isAbsolute = moment.isMoment(this.timeRaw.to);
   }
