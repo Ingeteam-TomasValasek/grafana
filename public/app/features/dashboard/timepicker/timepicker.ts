@@ -115,7 +115,6 @@ export class TimePickerCtrl {
       const toValue = parseUnit(timeRaw.to.slice(4), this.relativeValue)[0];
       const value = fromValue - toValue;
 
-      console.log(fromValue, toValue);
       this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
       this.relativeValue[0] = value;
       this.relativeStep = fromValue * -1;
