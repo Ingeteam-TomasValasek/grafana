@@ -106,6 +106,20 @@ export class TimePickerCtrl {
       this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
       this.relativeStep = this.relativeValue[0] * -1;
     }
+
+    if (this.timeRaw.from.slice(0, 4) === 'now-' && this.timeRaw.to.slice(0, 4) === 'now-') {
+      this.isAbsolute = true;
+      this.isRelative = true;
+
+      const fromValue = parseUnit(timeRaw.from.slice(4), this.relativeValue)[0];
+      const toValue = parseUnit(timeRaw.to.slice(4), this.relativeValue)[0];
+      const value = fromValue - toValue;
+
+      console.log(fromValue, toValue);
+      this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
+      this.relativeValue[0] = value;
+      this.relativeStep = fromValue * -1;
+    }
     // Commented out for Relative moves to work
     //this.isAbsolute = moment.isMoment(this.timeRaw.to);
   }
