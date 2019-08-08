@@ -27,6 +27,7 @@ export class CustomTimeRangeEditorCtrl {
   range: any;
   form: any;
   days: any;
+  customReload: any;
 
   /** @ngInject */
   constructor($scope, $rootScope) {
@@ -34,6 +35,7 @@ export class CustomTimeRangeEditorCtrl {
     this.dashboard.ranges = this.dashboard.ranges || [];
     this.dashboard.day = this.dashboard.day;
     this.dashboard.week = this.dashboard.week;
+    this.dashboard.customReload = this.dashboard.customReload;
     this.mode = 'list';
     this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 

@@ -36,6 +36,7 @@ export class DashboardModel {
   ranges: any;
   day: any;
   week: any;
+  customReload: boolean;
   gnetId: any;
   panels: PanelModel[];
 
@@ -86,6 +87,7 @@ export class DashboardModel {
     this.ranges = data.ranges || [];
     this.day = data.day || null;
     this.week = data.week || null;
+    this.customReload = data.customReload || false;
     this.gnetId = data.gnetId || null;
     this.panels = _.map(data.panels || [], panelData => new PanelModel(panelData));
 

@@ -83,13 +83,13 @@
   <div class="gf-timepicker-relative-section" ng-if="ctrl.customTimeOptions.length !== 0">
       <h3 class="section-heading">Custom ranges</h3>
       <ul>
-        <li bindonce ng-class="{active: option.active}">
+        <li bindonce ng-class="{active: option.active}" >
             <a ng-click="ctrl.lastShift(ctrl.customTimeOptions)" bo-text="">Last Shift</a>
         </li>
-        <li bindonce ng-class="{active: option.active}">
+        <li bindonce ng-class="{active: option.active}" ng-if="ctrl.customDay !== null">
             <a ng-click="ctrl.lastDay(ctrl.customDay)" bo-text="">Last Day</a>
         </li>
-        <li bindonce ng-class="{active: option.active}">
+        <li bindonce ng-class="{active: option.active}" ng-if="ctrl.customWeek !== null">
             <a ng-click="ctrl.lastWeek(ctrl.customWeek)" bo-text="">Last Week</a>
         </li>
         <br />

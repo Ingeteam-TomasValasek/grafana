@@ -59,7 +59,8 @@ export class TimePickerCtrl {
 
     // All this bellow is needed to be able to call lastShift function
     this.onRefresh();
-    if (this.dashboard.ranges.length > 0) {
+    console.log('lastShiftOnReload', this.dashboard.lastShiftOnReload);
+    if (this.dashboard.ranges.length > 0 && this.dashboard.day.customReload) {
       this.editTimeRaw = this.timeRaw;
       this.customTimeOptions = this.dashboard.ranges;
       this.refresh = {
@@ -74,6 +75,7 @@ export class TimePickerCtrl {
   }
 
   onRefresh() {
+    console.log('CustomReload', this.dashboard.day.customReload);
     const time = angular.copy(this.timeSrv.timeRange());
     const timeRaw = angular.copy(time.raw);
 
@@ -107,17 +109,19 @@ export class TimePickerCtrl {
       this.relativeStep = this.relativeValue[0] * -1;
     }
 
-    if (this.timeRaw.from.slice(0, 4) === 'now-' && this.timeRaw.to.slice(0, 4) === 'now-') {
-      this.isAbsolute = true;
-      this.isRelative = true;
+    if (!moment.isMoment(this.timeRaw.from)) {
+      if (this.timeRaw.from.slice(0, 4) === 'now-' && this.timeRaw.to.slice(0, 4) === 'now-') {
+        this.isAbsolute = true;
+        this.isRelative = true;
 
-      const fromValue = parseUnit(timeRaw.from.slice(4), this.relativeValue)[0];
-      const toValue = parseUnit(timeRaw.to.slice(4), this.relativeValue)[0];
-      const value = fromValue - toValue;
+        const fromValue = parseUnit(timeRaw.from.slice(4), this.relativeValue)[0];
+        const toValue = parseUnit(timeRaw.to.slice(4), this.relativeValue)[0];
+        const value = fromValue - toValue;
 
-      this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
-      this.relativeValue[0] = value;
-      this.relativeStep = fromValue * -1;
+        this.relativeValue = parseUnit(timeRaw.from.slice(4), this.relativeValue);
+        this.relativeValue[0] = value;
+        this.relativeStep = fromValue * -1;
+      }
     }
     // Commented out for Relative moves to work
     //this.isAbsolute = moment.isMoment(this.timeRaw.to);
