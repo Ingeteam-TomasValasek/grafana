@@ -59,7 +59,7 @@ export class TimePickerCtrl {
 
     // All this bellow is needed to be able to call lastShift function
     this.onRefresh();
-    if (this.dashboard.day) {
+    if (this.dashboard.day !== null) {
       if (this.dashboard.ranges.length > 0 && this.dashboard.day.customReload) {
         this.editTimeRaw = this.timeRaw;
         this.customTimeOptions = this.dashboard.ranges;
