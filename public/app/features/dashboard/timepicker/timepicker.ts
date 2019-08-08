@@ -59,23 +59,23 @@ export class TimePickerCtrl {
 
     // All this bellow is needed to be able to call lastShift function
     this.onRefresh();
-    console.log('lastShiftOnReload', this.dashboard.lastShiftOnReload);
-    if (this.dashboard.ranges.length > 0 && this.dashboard.day.customReload) {
-      this.editTimeRaw = this.timeRaw;
-      this.customTimeOptions = this.dashboard.ranges;
-      this.refresh = {
-        value: this.dashboard.refresh,
-        options: _.map(this.panel.refresh_intervals, (interval: any) => {
-          return { text: interval, value: interval };
-        }),
-      };
-      // call last shift on reload
-      this.lastShift(this.customTimeOptions);
+    if (this.dashboard.day) {
+      if (this.dashboard.ranges.length > 0 && this.dashboard.day.customReload) {
+        this.editTimeRaw = this.timeRaw;
+        this.customTimeOptions = this.dashboard.ranges;
+        this.refresh = {
+          value: this.dashboard.refresh,
+          options: _.map(this.panel.refresh_intervals, (interval: any) => {
+            return { text: interval, value: interval };
+          }),
+        };
+        // call last shift on reload
+        this.lastShift(this.customTimeOptions);
+      }
     }
   }
 
   onRefresh() {
-    console.log('CustomReload', this.dashboard.day.customReload);
     const time = angular.copy(this.timeSrv.timeRange());
     const timeRaw = angular.copy(time.raw);
 
